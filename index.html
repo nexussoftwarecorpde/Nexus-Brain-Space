@@ -1,0 +1,89 @@
+<!DOCTYPE html><html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nachthimmel mit Lagerfeuer</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: linear-gradient(#000010, #000022);
+      height: 100%;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<script>
+const canvas = document.getElementById('scene');
+const ctx = canvas.getContext('2d');
+let w, h;const stars = []; const planets = [];
+
+function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
+
+window.addEventListener('resize', resize); resize();
+
+// Sterne erzeugen for (let i = 0; i < 300; i++) { stars.push({ x: Math.random() * w, y: Math.random() * h * 0.7, size: Math.random() * 1.5, brightness: Math.random(), speed: 0.05 + Math.random() * 0.1 }); }
+
+// Planeten erzeugen planets.push({ x: w * 0.7, y: h * 0.2, r: 50, color: '#cccccc' }); // Mond planets.push({ x: w * 0.4, y: h * 0.1, r: 35, color: '#88ccff' }); // Uranus planets.push({ x: w * 0.2, y: h * 0.3, r: 45, color: '#ffaa55', ring: true }); // Saturn
+
+function drawGrass() { ctx.fillStyle = '#0a0'; ctx.fillRect(0, h * 0.85, w, h * 0.15);
+
+for (let i = 0; i < w; i += 5) { const height = 10 + Math.random() * 20; ctx.beginPath(); ctx.moveTo(i, h * 0.85); ctx.lineTo(i + 1, h * 0.85 - height); ctx.strokeStyle = '#0f0'; ctx.lineWidth = 1; ctx.stroke(); } }
+
+function drawPlanets() { planets.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fillStyle = p.color; ctx.fill();
+
+if (p.ring) {
+  ctx.beginPath();
+  ctx.ellipse(p.x, p.y, p.r * 1.5, p.r * 0.4, 0, 0, Math.PI * 2);
+  ctx.strokeStyle = '#aaa';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+}); }
+
+function drawStars() { stars.forEach(star => { star.brightness += (Math.random() - 0.5) * 0.05; if (star.brightness < 0.1) star.brightness = 0.1; if (star.brightness > 1) star.brightness = 1;
+
+ctx.beginPath();
+ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+ctx.fillStyle = `rgba(255,255,255,${star.brightness})`;
+ctx.fill();
+
+// Leichte Bewegung
+star.x += (Math.random() - 0.5) * star.speed;
+star.y += (Math.random() - 0.5) * star.speed;
+
+}); }
+
+function drawCampfire() { const baseX = w * 0.5; const baseY = h * 0.85;
+
+// Flammen for (let i = 0; i < 5; i++) { const flickerX = baseX + (Math.random() - 0.5) * 10; const flickerY = baseY - 20 - Math.random() * 30; const size = 20 + Math.random() * 20;
+
+ctx.beginPath();
+ctx.arc(flickerX, flickerY, size * 0.2, 0, Math.PI * 2);
+ctx.fillStyle = `rgba(255, ${100 + Math.random() * 155}, 0, 0.7)`;
+ctx.fill();
+
+}
+
+// Funken for (let i = 0; i < 5; i++) { const sparkX = baseX + (Math.random() - 0.5) * 40; const sparkY = baseY - 30 - Math.random() * 60; ctx.beginPath(); ctx.arc(sparkX, sparkY, 1.5, 0, Math.PI * 2); ctx.fillStyle = 'orange'; ctx.fill(); }
+
+// Holzstämme ctx.fillStyle = '#552200'; ctx.fillRect(baseX - 20, baseY, 40, 5); ctx.fillRect(baseX - 30, baseY + 5, 60, 5); }
+
+function animate() { ctx.clearRect(0, 0, w, h);
+
+// Hintergrund bleibt dunkler Verlauf
+
+drawStars(); drawPlanets(); drawGrass(); drawCampfire();
+
+requestAnimationFrame(animate); }
+
+animate(); </script>
+
+</body>
+</html>
