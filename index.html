@@ -21,19 +21,25 @@
 <script>
 const canvas = document.getElementById('scene');
 const ctx = canvas.getContext('2d');
-let w, h;const stars = []; const planets = [];
+let w, h;const stars = []; const planets = []; const grass = []; const smoke = []; const shootingStars = [];
 
 function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
 
 window.addEventListener('resize', resize); resize();
 
-// Sterne erzeugen for (let i = 0; i < 300; i++) { stars.push({ x: Math.random() * w, y: Math.random() * h * 0.7, size: Math.random() * 1.5, brightness: Math.random(), speed: 0.05 + Math.random() * 0.1 }); }
+for (let i = 0; i < 300; i++) { stars.push({ x: Math.random() * w, y: Math.random() * h * 0.7, size: Math.random() * 1.5, brightness: Math.random(), speed: 0.05 + Math.random() * 0.1 }); }
 
-// Planeten erzeugen planets.push({ x: w * 0.7, y: h * 0.2, r: 50, color: '#cccccc' }); // Mond planets.push({ x: w * 0.4, y: h * 0.1, r: 35, color: '#88ccff' }); // Uranus planets.push({ x: w * 0.2, y: h * 0.3, r: 45, color: '#ffaa55', ring: true }); // Saturn
+planets.push({ x: w * 0.7, y: h * 0.2, r: 50, color: '#cccccc' }); planets.push({ x: w * 0.4, y: h * 0.1, r: 35, color: '#88ccff' }); planets.push({ x: w * 0.2, y: h * 0.3, r: 45, color: '#ffaa55', ring: true });
+
+for (let i = 0; i < w; i += 5) { grass.push({ x: i, height: 10 + Math.random() * 20, sway: Math.random() * Math.PI }); }
+
+function createShootingStar() { shootingStars.push({ x: Math.random() * w, y: Math.random() * h * 0.5, size: 2 + Math.random() * 2, speedX: 4 + Math.random() * 2, speedY: 2 + Math.random() * 1 }); }
+
+setInterval(() => { if (Math.random() < 0.3) createShootingStar(); }, 3000);
 
 function drawGrass() { ctx.fillStyle = '#0a0'; ctx.fillRect(0, h * 0.85, w, h * 0.15);
 
-for (let i = 0; i < w; i += 5) { const height = 10 + Math.random() * 20; ctx.beginPath(); ctx.moveTo(i, h * 0.85); ctx.lineTo(i + 1, h * 0.85 - height); ctx.strokeStyle = '#0f0'; ctx.lineWidth = 1; ctx.stroke(); } }
+grass.forEach(g => { g.sway += 0.02; const swayOffset = Math.sin(g.sway) * 3; ctx.beginPath(); ctx.moveTo(g.x, h * 0.85); ctx.lineTo(g.x + swayOffset, h * 0.85 - g.height); ctx.strokeStyle = '#0f0'; ctx.lineWidth = 1; ctx.stroke(); }); }
 
 function drawPlanets() { planets.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fillStyle = p.color; ctx.fill();
 
@@ -54,7 +60,6 @@ ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
 ctx.fillStyle = `rgba(255,255,255,${star.brightness})`;
 ctx.fill();
 
-// Leichte Bewegung
 star.x += (Math.random() - 0.5) * star.speed;
 star.y += (Math.random() - 0.5) * star.speed;
 
@@ -62,7 +67,7 @@ star.y += (Math.random() - 0.5) * star.speed;
 
 function drawCampfire() { const baseX = w * 0.5; const baseY = h * 0.85;
 
-// Flammen for (let i = 0; i < 5; i++) { const flickerX = baseX + (Math.random() - 0.5) * 10; const flickerY = baseY - 20 - Math.random() * 30; const size = 20 + Math.random() * 20;
+for (let i = 0; i < 5; i++) { const flickerX = baseX + (Math.random() - 0.5) * 10; const flickerY = baseY - 20 - Math.random() * 30; const size = 20 + Math.random() * 20;
 
 ctx.beginPath();
 ctx.arc(flickerX, flickerY, size * 0.2, 0, Math.PI * 2);
@@ -71,15 +76,35 @@ ctx.fill();
 
 }
 
-// Funken for (let i = 0; i < 5; i++) { const sparkX = baseX + (Math.random() - 0.5) * 40; const sparkY = baseY - 30 - Math.random() * 60; ctx.beginPath(); ctx.arc(sparkX, sparkY, 1.5, 0, Math.PI * 2); ctx.fillStyle = 'orange'; ctx.fill(); }
+for (let i = 0; i < 5; i++) { const sparkX = baseX + (Math.random() - 0.5) * 40; const sparkY = baseY - 30 - Math.random() * 60; ctx.beginPath(); ctx.arc(sparkX, sparkY, 1.5, 0, Math.PI * 2); ctx.fillStyle = 'orange'; ctx.fill(); }
 
-// Holzstämme ctx.fillStyle = '#552200'; ctx.fillRect(baseX - 20, baseY, 40, 5); ctx.fillRect(baseX - 30, baseY + 5, 60, 5); }
+ctx.fillStyle = '#552200'; ctx.fillRect(baseX - 20, baseY, 40, 5); ctx.fillRect(baseX - 30, baseY + 5, 60, 5);
+
+// Rauch erzeugen if (Math.random() < 0.5) { smoke.push({ x: baseX + (Math.random() - 0.5) * 20, y: baseY - 40, size: 10 + Math.random() * 10, alpha: 0.5 + Math.random() * 0.5, drift: (Math.random() - 0.5) * 0.5 }); } }
+
+function drawSmoke() { smoke.forEach((s, i) => { s.y -= 0.5; s.x += s.drift; s.alpha -= 0.005;
+
+ctx.beginPath();
+ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+ctx.fillStyle = `rgba(200, 200, 200, ${s.alpha})`;
+ctx.fill();
+
+if (s.alpha <= 0) smoke.splice(i, 1);
+
+}); }
+
+function drawShootingStars() { shootingStars.forEach((s, i) => { ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(s.x - 20, s.y - 10); ctx.strokeStyle = 'white'; ctx.lineWidth = s.size; ctx.stroke();
+
+s.x -= s.speedX;
+s.y -= s.speedY;
+
+if (s.x < -50 || s.y < -50) shootingStars.splice(i, 1);
+
+}); }
 
 function animate() { ctx.clearRect(0, 0, w, h);
 
-// Hintergrund bleibt dunkler Verlauf
-
-drawStars(); drawPlanets(); drawGrass(); drawCampfire();
+drawStars(); drawPlanets(); drawGrass(); drawCampfire(); drawSmoke(); drawShootingStars();
 
 requestAnimationFrame(animate); }
 
